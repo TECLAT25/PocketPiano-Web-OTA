@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <title>PocketPiano · Actualización BLE</title>
+  <style>
+:root { font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #111827; background: #f3f4f6; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; }
+button, input, select { font: inherit; }
+.shell { width: min(760px, 100%); margin: auto; padding: 24px 16px 48px; }
+.hero { padding: 16px 4px 10px; }
+.brand { font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .82rem; }
+h1 { margin: 8px 0; font-size: clamp(2rem, 8vw, 3.4rem); line-height: 1; }
+h2 { margin: 0 0 16px; font-size: 1.15rem; }
+p { line-height: 1.5; }
+.card { background: white; border-radius: 20px; padding: 20px; margin-top: 16px; box-shadow: 0 10px 30px rgba(17,24,39,.07); }
+.status-card { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.eyebrow { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; }
+.status { font-size: 1.15rem; font-weight: 750; margin-top: 3px; }
+.badge { padding: 8px 12px; border-radius: 999px; background: #e5e7eb; font-size: .85rem; white-space: nowrap; }
+.badge.connected { background: #dcfce7; color: #166534; }
+button { width: 100%; min-height: 48px; border: 0; border-radius: 13px; padding: 12px 16px; font-weight: 750; margin-top: 10px; cursor: pointer; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.primary { background: #111827; color: white; }
+.secondary { background: #e5e7eb; color: #111827; }
+.danger { background: #b91c1c; color: white; }
+.file-picker { display: block; border: 2px dashed #9ca3af; border-radius: 14px; padding: 18px; text-align: center; font-weight: 700; cursor: pointer; }
+.file-picker input { display: block; width: 100%; margin-top: 12px; }
+.details { margin: 18px 0 0; }
+.details div { display: grid; grid-template-columns: 105px 1fr; gap: 12px; padding: 9px 0; border-top: 1px solid #f0f1f3; }
+dt { color: #6b7280; } dd { margin: 0; overflow-wrap: anywhere; }
+.mono, .log { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .78rem; }
+.progress-wrap { display: flex; align-items: center; gap: 12px; }
+progress { width: 100%; height: 18px; }
+.warning { color: #92400e; background: #fffbeb; padding: 12px; border-radius: 12px; font-size: .9rem; }
+.hint { color: #4b5563; }
+.advanced summary { cursor: pointer; font-weight: 750; }
+.advanced label { display: block; margin: 18px 0; }
+select { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #d1d5db; border-radius: 10px; background: white; }
+.check { display: flex !important; gap: 10px; align-items: center; }
+.log { min-height: 180px; max-height: 340px; overflow: auto; white-space: pre-wrap; background: #111827; color: #d1fae5; padding: 14px; border-radius: 12px; }
+@media (min-width: 600px) { .shell { padding-top: 48px; } }
+
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="brand">PocketPiano</div>
+      <h1>Actualización de firmware</h1>
+      <p>Conecta el piano por Bluetooth y carga un firmware <strong>.bin</strong> desde Chrome en Android.</p>
+    </header>
+
+    <section class="card status-card" aria-live="polite">
+      <div>
+        <span class="eyebrow">Estado</span>
+        <div id="status" class="status">Preparado</div>
+      </div>
+      <span id="connectionBadge" class="badge">Sin conectar</span>
+    </section>
+
+    <section class="card">
+      <h2>1. Dispositivo</h2>
+      <p id="compatibility" class="hint"></p>
+      <button id="connectBtn" class="primary">Conectar PocketPiano</button>
+      <button id="disconnectBtn" class="secondary" disabled>Desconectar</button>
+      <dl class="details">
+        <div><dt>Nombre</dt><dd id="deviceName">—</dd></div>
+        <div><dt>Identificador</dt><dd id="deviceId">—</dd></div>
+      </dl>
+    </section>
+
+    <section class="card">
+      <h2>2. Firmware</h2>
+      <label class="file-picker">
+        <span>Seleccionar archivo .bin</span>
+        <input id="firmwareInput" type="file" accept=".bin,application/octet-stream" />
+      </label>
+      <dl class="details">
+        <div><dt>Archivo</dt><dd id="fileName">—</dd></div>
+        <div><dt>Tamaño</dt><dd id="fileSize">—</dd></div>
+        <div><dt>SHA-256</dt><dd id="fileHash" class="mono">—</dd></div>
+      </dl>
+    </section>
+
+    <section class="card">
+      <h2>3. Actualización</h2>
+      <div class="progress-wrap">
+        <progress id="progress" value="0" max="100"></progress>
+        <span id="progressText">0 %</span>
+      </div>
+      <button id="updateBtn" class="danger" disabled>Actualizar firmware</button>
+      <button id="cancelBtn" class="secondary" disabled>Cancelar</button>
+      <p class="warning">No cierres Chrome, no bloquees la pantalla y no desconectes la alimentación durante la actualización.</p>
+    </section>
+
+    <details class="card advanced">
+      <summary>Opciones técnicas</summary>
+      <label>
+        Tamaño de escritura BLE
+        <select id="packetSize">
+          <option value="463" selected>463 bytes (como la APK con MTU ampliado)</option>
+          <option value="20">20 bytes (máxima compatibilidad)</option>
+        </select>
+      </label>
+      <label class="check"><input id="demoMode" type="checkbox" /> Modo simulación, sin PocketPiano</label>
+      <button id="downloadLogBtn" class="secondary">Descargar registro</button>
+      <pre id="log" class="log" tabindex="0"></pre>
+    </details>
+  </main>
+
+  <script>
+'use strict';
+
+const UUID = {
+  service: '00008018-0000-1000-8000-00805f9b34fb',
+  firmware: '00008020-0000-1000-8000-00805f9b34fb',
+  progress: '00008021-0000-1000-8000-00805f9b34fb',
+  command: '00008022-0000-1000-8000-00805f9b34fb',
+  customer: '00008023-0000-1000-8000-00805f9b34fb'
+};
+
+const COMMAND = { START: 1, END: 2, ACK: 3 };
+const SECTOR_SIZE = 4096;
+
+const el = Object.fromEntries([...document.querySelectorAll('[id]')].map(node => [node.id, node]));
+let device = null;
+let server = null;
+let chars = {};
+let firmwareFile = null;
+let firmwareBytes = null;
+let abortRequested = false;
+let running = false;
+let commandWaiter = null;
+let sectorWaiter = null;
+let logLines = [];
+
+function log(message, data) {
+  const line = `${new Date().toISOString()}  ${message}${data === undefined ? '' : ` ${JSON.stringify(data)}`}`;
+  logLines.push(line);
+  el.log.textContent = logLines.join('\n');
+  el.log.scrollTop = el.log.scrollHeight;
+}
+
+function setStatus(text) { el.status.textContent = text; log(text); }
+function formatBytes(n) { return new Intl.NumberFormat('es-ES', { style: 'unit', unit: 'byte', unitDisplay: 'short' }).format(n); }
+function setProgress(value) {
+  const safe = Math.max(0, Math.min(100, Math.round(value)));
+  el.progress.value = safe;
+  el.progressText.textContent = `${safe} %`;
+}
+function updateControls() {
+  const connected = Boolean(server?.connected) || el.demoMode.checked;
+  el.connectionBadge.textContent = connected ? (el.demoMode.checked ? 'Simulación' : 'Conectado') : 'Sin conectar';
+  el.connectionBadge.classList.toggle('connected', connected);
+  el.disconnectBtn.disabled = !server?.connected || running;
+  el.connectBtn.disabled = running;
+  el.firmwareInput.disabled = running;
+  el.packetSize.disabled = running;
+  el.demoMode.disabled = running;
+  el.updateBtn.disabled = running || !connected || !firmwareBytes;
+  el.cancelBtn.disabled = !running;
+}
+
+function crc16(bytes, start = 0, end = bytes.length) {
+  let crc = 0;
+  for (let i = start; i < end; i++) {
+    crc ^= bytes[i] << 8;
+    for (let bit = 0; bit < 8; bit++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xffff : (crc << 1) & 0xffff;
+  }
+  return crc;
+}
+
+function commandPacket(id, payload = new Uint8Array()) {
+  if (payload.length > 16) throw new Error('Payload de comando demasiado largo');
+  const packet = new Uint8Array(20);
+  packet[0] = id & 0xff;
+  packet[1] = (id >>> 8) & 0xff;
+  packet.set(payload, 2);
+  const crc = crc16(packet, 0, 18);
+  packet[18] = crc & 0xff;
+  packet[19] = (crc >>> 8) & 0xff;
+  return packet;
+}
+
+function uint16LE(data, offset) { return data.getUint16(offset, true); }
+
+function commandNotification(event) {
+  const data = event.target.value;
+  if (data.byteLength < 6) return log('Notificación de comando demasiado corta');
+  const responseId = uint16LE(data, 0);
+  const commandId = uint16LE(data, 2);
+  const status = uint16LE(data, 4);
+  log('ACK comando', { responseId, commandId, status });
+  if (responseId === COMMAND.ACK && commandWaiter) {
+    const waiter = commandWaiter;
+    commandWaiter = null;
+    waiter.resolve({ commandId, status });
+  }
+}
+
+function firmwareNotification(event) {
+  const data = event.target.value;
+  if (data.byteLength < 4) return log('ACK de sector demasiado corto');
+  const index = uint16LE(data, 0);
+  const status = uint16LE(data, 2);
+  log('ACK sector', { index, status });
+  if (sectorWaiter) {
+    const waiter = sectorWaiter;
+    sectorWaiter = null;
+    waiter.resolve({ index, status });
+  }
+}
+
+function progressNotification(event) {
+  const bytes = new Uint8Array(event.target.value.buffer, event.target.value.byteOffset, event.target.value.byteLength);
+  log('Progreso del dispositivo', [...bytes]);
+}
+
+function customerNotification(event) {
+  const bytes = new Uint8Array(event.target.value.buffer, event.target.value.byteOffset, event.target.value.byteLength);
+  log('Canal auxiliar', [...bytes]);
+}
+
+function waitFor(kind, timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      if (kind === 'command') commandWaiter = null; else sectorWaiter = null;
+      reject(new Error(`Tiempo agotado esperando ACK de ${kind}`));
+    }, timeoutMs);
+    const wrapped = { resolve: value => { clearTimeout(timer); resolve(value); }, reject };
+    if (kind === 'command') commandWaiter = wrapped; else sectorWaiter = wrapped;
+  });
+}
+
+async function writeWithResponse(characteristic, bytes) {
+  if (abortRequested) throw new DOMException('Actualización cancelada', 'AbortError');
+  if (characteristic.writeValueWithResponse) return characteristic.writeValueWithResponse(bytes);
+  return characteristic.writeValue(bytes);
+}
+
+async function connect() {
+  if (el.demoMode.checked) { setStatus('Modo simulación activado'); updateControls(); return; }
+  if (!navigator.bluetooth) throw new Error('Este navegador no admite Web Bluetooth. Usa Chrome en Android mediante HTTPS.');
+  setStatus('Selecciona el PocketPiano…');
+  device = await navigator.bluetooth.requestDevice({ filters: [{ services: [UUID.service] }], optionalServices: [UUID.service] });
+  device.addEventListener('gattserverdisconnected', onDisconnected);
+  setStatus('Conectando por Bluetooth…');
+  server = await device.gatt.connect();
+  const service = await server.getPrimaryService(UUID.service);
+  chars.firmware = await service.getCharacteristic(UUID.firmware);
+  chars.progress = await service.getCharacteristic(UUID.progress);
+  chars.command = await service.getCharacteristic(UUID.command);
+  chars.customer = await service.getCharacteristic(UUID.customer);
+
+  await chars.firmware.startNotifications();
+  await chars.progress.startNotifications();
+  await chars.command.startNotifications();
+  await chars.customer.startNotifications();
+  chars.firmware.addEventListener('characteristicvaluechanged', firmwareNotification);
+  chars.progress.addEventListener('characteristicvaluechanged', progressNotification);
+  chars.command.addEventListener('characteristicvaluechanged', commandNotification);
+  chars.customer.addEventListener('characteristicvaluechanged', customerNotification);
+
+  el.deviceName.textContent = device.name || 'PocketPiano sin nombre';
+  el.deviceId.textContent = device.id || '—';
+  setStatus('PocketPiano conectado');
+  updateControls();
+}
+
+function onDisconnected() {
+  server = null; chars = {};
+  if (running) setStatus('Bluetooth desconectado durante la actualización'); else setStatus('PocketPiano desconectado');
+  updateControls();
+}
+
+function disconnect() {
+  if (device?.gatt?.connected) device.gatt.disconnect();
+  onDisconnected();
+}
+
+async function loadFirmware(file) {
+  firmwareFile = file || null;
+  firmwareBytes = file ? new Uint8Array(await file.arrayBuffer()) : null;
+  el.fileName.textContent = file?.name || '—';
+  el.fileSize.textContent = file ? formatBytes(file.size) : '—';
+  el.fileHash.textContent = 'Calculando…';
+  if (firmwareBytes) {
+    const hash = await crypto.subtle.digest('SHA-256', firmwareBytes);
+    el.fileHash.textContent = [...new Uint8Array(hash)].map(x => x.toString(16).padStart(2, '0')).join('');
+    log('Firmware cargado', { name: file.name, size: file.size });
+  } else el.fileHash.textContent = '—';
+  updateControls();
+}
+
+function buildSectorPackets(sector, sectorIndex, packetSize) {
+  const dataSize = packetSize - 3;
+  if (dataSize <= 0) throw new Error('Tamaño de paquete BLE inválido');
+  const packets = [];
+  let packetIndex = 0;
+  for (let offset = 0; offset < sector.length; offset += dataSize) {
+    const chunk = sector.subarray(offset, Math.min(offset + dataSize, sector.length));
+    const isLast = offset + chunk.length >= sector.length;
+    const packet = new Uint8Array(3 + chunk.length + (isLast ? 2 : 0));
+    packet[0] = sectorIndex & 0xff;
+    packet[1] = (sectorIndex >>> 8) & 0xff;
+    packet[2] = isLast ? 0xff : packetIndex & 0xff;
+    packet.set(chunk, 3);
+    if (isLast) {
+      const crc = crc16(sector);
+      packet[packet.length - 2] = crc & 0xff;
+      packet[packet.length - 1] = (crc >>> 8) & 0xff;
+    }
+    packets.push(packet);
+    packetIndex++;
+  }
+  return packets;
+}
+
+async function sendCommand(id, payload) {
+  if (el.demoMode.checked) { await delay(250); return { commandId: id, status: 0 }; }
+  const pending = waitFor('command');
+  await writeWithResponse(chars.command, commandPacket(id, payload));
+  const ack = await pending;
+  if (ack.commandId !== id) throw new Error(`ACK de comando inesperado: ${ack.commandId}`);
+  if (ack.status !== 0) throw new Error(`El PocketPiano rechazó el comando ${id}, estado ${ack.status}`);
+  return ack;
+}
+
+async function sendSector(sector, index, packetSize) {
+  const packets = buildSectorPackets(sector, index, packetSize);
+  log('Enviando sector', { index, bytes: sector.length, packets: packets.length });
+  if (el.demoMode.checked) { for (const _ of packets) await delay(2); return { index, status: 0 }; }
+  const pending = waitFor('sector', 30000);
+  for (const packet of packets) await writeWithResponse(chars.firmware, packet);
+  return pending;
+}
+
+function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+async function updateFirmware() {
+  if (!firmwareBytes) throw new Error('Selecciona un firmware .bin');
+  if (!el.demoMode.checked && !server?.connected) throw new Error('Conecta primero el PocketPiano');
+  running = true; abortRequested = false; setProgress(0); updateControls();
+  const packetSize = Number(el.packetSize.value);
+  const totalSectors = Math.ceil(firmwareBytes.length / SECTOR_SIZE);
+  try {
+    setStatus('Iniciando actualización…');
+    const sizePayload = new Uint8Array(4);
+    new DataView(sizePayload.buffer).setUint32(0, firmwareBytes.length, true);
+    await sendCommand(COMMAND.START, sizePayload);
+
+    for (let index = 0; index < totalSectors; index++) {
+      if (abortRequested) throw new DOMException('Actualización cancelada', 'AbortError');
+      const sector = firmwareBytes.subarray(index * SECTOR_SIZE, Math.min((index + 1) * SECTOR_SIZE, firmwareBytes.length));
+      setStatus(`Enviando sector ${index + 1} de ${totalSectors}…`);
+      const ack = await sendSector(sector, index, packetSize);
+      if (ack.index !== index) throw new Error(`Índice ACK incorrecto: recibido ${ack.index}, esperado ${index}`);
+      if (ack.status !== 0) {
+        const messages = { 1: 'CRC incorrecto', 2: 'índice de sector incorrecto', 3: 'longitud de datos incorrecta' };
+        throw new Error(`Error de sector ${index}: ${messages[ack.status] || `estado ${ack.status}`}`);
+      }
+      setProgress(((index + 1) * 100) / totalSectors);
+    }
+
+    setStatus('Finalizando actualización…');
+    await sendCommand(COMMAND.END, new Uint8Array());
+    setProgress(100);
+    setStatus('Actualización completada correctamente');
+  } catch (error) {
+    if (error.name === 'AbortError') setStatus('Actualización cancelada');
+    else {
+      setStatus(`Error: ${error.message}`);
+      log('ERROR', { name: error.name, message: error.message, stack: error.stack });
+      if (packetSize === 463 && /length|GATT|write|NotSupported/i.test(error.message)) {
+        log('Sugerencia: repite con 20 bytes en Opciones técnicas. Web Bluetooth no permite solicitar MTU explícitamente.');
+      }
+    }
+  } finally {
+    running = false; abortRequested = false; commandWaiter = null; sectorWaiter = null; updateControls();
+  }
+}
+
+function downloadLog() {
+  const blob = new Blob([logLines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `pocketpiano-ota-${Date.now()}.log`; a.click(); URL.revokeObjectURL(a.href);
+}
+
+el.connectBtn.addEventListener('click', () => connect().catch(error => { setStatus(`Error de conexión: ${error.message}`); updateControls(); }));
+el.disconnectBtn.addEventListener('click', disconnect);
+el.firmwareInput.addEventListener('change', event => loadFirmware(event.target.files?.[0]).catch(error => setStatus(`Error de archivo: ${error.message}`)));
+el.updateBtn.addEventListener('click', updateFirmware);
+el.cancelBtn.addEventListener('click', () => { abortRequested = true; setStatus('Cancelando…'); });
+el.demoMode.addEventListener('change', () => { if (el.demoMode.checked) disconnect(); setStatus(el.demoMode.checked ? 'Modo simulación activado' : 'Preparado'); updateControls(); });
+el.downloadLogBtn.addEventListener('click', downloadLog);
+
+const secure = location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname);
+el.compatibility.textContent = navigator.bluetooth && secure
+  ? 'Web Bluetooth disponible en este navegador.'
+  : 'Para Bluetooth real, abre esta web con Chrome en Android mediante HTTPS. El modo simulación sí funciona sin Bluetooth.';
+
+log('Aplicación iniciada', { webBluetooth: Boolean(navigator.bluetooth), secureContext: window.isSecureContext });
+updateControls();
+
+  </script>
+</body>
+</html>
