@@ -1,6 +1,11 @@
 (()=>{
-  const activeNotes=new Set();
+  const activeNotes=new Map();
+  const lastVelocity=new Map();
   let runningStatus=null;
+
+  const noteNames=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+
+  const noteLabel=note=>`${noteNames[note%12]}${Math.floor(note/12)-1}`;
 
   const noteToPosition=note=>{
     if(note<21||note>107)return null;
@@ -13,17 +18,59 @@
     ?11+key
     :24+(module-1)*12+(key-1);
 
-  const render=()=>{
+  const appendReadableLog=(note,velocity,on)=>{
+    const log=document.querySelector('#log');
+    if(!log)return;
+    const time=new Date().toLocaleTimeString();
+    const line=on
+      ?`${time} [MIDI] Note On  ${noteLabel(note)} (${note}) velocity=${velocity}`
+      :`${time} [MIDI] Note Off ${noteLabel(note)} (${note})`;
+    log.textContent+=line+'\n';
+    log.scrollTop=log.scrollHeight;
+  };
+
+  const renderPiano=()=>{
     document.querySelectorAll('.piano-live-key').forEach(key=>{
-      key.classList.toggle('active',activeNotes.has(Number(key.dataset.midiNote)));
+      const note=Number(key.dataset.midiNote);
+      const velocity=activeNotes.get(note)||0;
+      key.classList.toggle('active',velocity>0);
+      key.style.setProperty('--midi-strength',String(Math.max(.35,velocity/127)));
+      key.dataset.velocity=String(lastVelocity.get(note)||0);
     });
   };
 
-  const setNote=(note,on)=>{
-    if(!noteToPosition(note))return;
-    if(on)activeNotes.add(note);
-    else activeNotes.delete(note);
-    render();
+  const renderModuleReading=(note,velocity,on)=>{
+    const position=noteToPosition(note);
+    if(!position)return;
+    const activeModule=Number(document.querySelector('#activeModule')?.textContent);
+    if(activeModule!==position.module)return;
+
+    const reading=document.querySelector(`.key-reading[data-key="${position.key}"]`);
+    if(!reading)return;
+
+    const output=reading.querySelector('output');
+    if(output)output.textContent=String(velocity);
+    reading.classList.toggle('midi-active',on);
+    reading.style.setProperty('--midi-strength',String(Math.max(.35,velocity/127)));
+    reading.dataset.midiNote=String(note);
+    reading.dataset.velocity=String(velocity);
+  };
+
+  const setNote=(note,on,velocity=0,writeLog=false)=>{
+    const position=noteToPosition(note);
+    if(!position)return;
+
+    const effectiveVelocity=on?Math.max(1,Math.min(127,velocity||1)):0;
+    if(on){
+      activeNotes.set(note,effectiveVelocity);
+      lastVelocity.set(note,effectiveVelocity);
+    }else{
+      activeNotes.delete(note);
+    }
+
+    renderPiano();
+    renderModuleReading(note,on?effectiveVelocity:0,on);
+    if(writeLog)appendReadableLog(note,effectiveVelocity,on);
   };
 
   const messageDataLength=status=>{
@@ -38,13 +85,12 @@
     if(type!==0x80&&type!==0x90)return;
     const note=dataBytes[0];
     const velocity=dataBytes[1]??0;
-    setNote(note,type===0x90&&velocity>0);
+    const on=type===0x90&&velocity>0;
+    setNote(note,on,velocity,true);
   };
 
   const parseBleMidi=packet=>{
     if(!packet||packet.length<2)return;
-
-    // El primer byte es la cabecera de timestamp BLE MIDI.
     let i=1;
 
     while(i<packet.length){
@@ -57,9 +103,6 @@
 
       if(byte&0x80){
         const required=messageDataLength(byte);
-
-        // Un estado MIDI válido debe ir seguido por sus bytes de datos.
-        // Si no es así, este byte es un timestamp BLE MIDI y se ignora.
         if(required>0&&i+required<packet.length){
           let valid=true;
           for(let n=1;n<=required;n++){
@@ -74,12 +117,10 @@
             continue;
           }
         }
-
         i++;
         continue;
       }
 
-      // Running Status: después de un timestamp pueden llegar solo los datos.
       if(runningStatus!==null){
         const required=messageDataLength(runningStatus);
         if(required>0&&i+required-1<packet.length){
@@ -97,9 +138,22 @@
           }
         }
       }
-
       i++;
     }
+  };
+
+  const refreshVisibleModule=()=>{
+    const activeModule=Number(document.querySelector('#activeModule')?.textContent);
+    document.querySelectorAll('.key-reading').forEach(reading=>{
+      const key=Number(reading.dataset.key);
+      const note=positionToNote(activeModule,key);
+      const velocity=activeNotes.get(note)||0;
+      const last=lastVelocity.get(note)||0;
+      const output=reading.querySelector('output');
+      if(output&&lastVelocity.has(note))output.textContent=String(velocity||last);
+      reading.classList.toggle('midi-active',velocity>0);
+      reading.style.setProperty('--midi-strength',String(Math.max(.35,velocity/127)));
+    });
   };
 
   const build=()=>{
@@ -121,13 +175,20 @@
 
     document.querySelectorAll('.piano-live-key').forEach(key=>{
       const note=Number(key.dataset.midiNote);
-      key.addEventListener('pointerdown',()=>setNote(note,true));
+      key.addEventListener('pointerdown',()=>setNote(note,true,96));
       ['pointerup','pointercancel','pointerleave'].forEach(type=>{
-        key.addEventListener(type,()=>setNote(note,false));
+        key.addEventListener(type,()=>setNote(note,false,0));
       });
     });
 
-    render();
+    const observer=new MutationObserver(refreshVisibleModule);
+    const activeModule=document.querySelector('#activeModule');
+    const readings=document.querySelector('#keyReadings');
+    if(activeModule)observer.observe(activeModule,{childList:true,characterData:true,subtree:true});
+    if(readings)observer.observe(readings,{childList:true,subtree:true});
+
+    renderPiano();
+    refreshVisibleModule();
   };
 
   window.addEventListener('pocketpiano-midi',event=>parseBleMidi(event.detail));
