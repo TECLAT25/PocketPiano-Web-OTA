@@ -1,7 +1,7 @@
 (()=>{
   const activeNotes=new Map();
   const lastVelocity=new Map();
-  const MIDI_NOTE_OFFSET=-24;
+  const MIDI_NOTE_OFFSET=-48;
   const MAX_LOG_LINES=120;
   let runningStatus=null;
   let logLines=[];
