@@ -8,11 +8,11 @@
   <meta http-equiv="Expires" content="0">
   <meta name="theme-color" content="#15171a">
   <meta name="description" content="Configuración y diagnóstico de PocketPiano mediante Bluetooth LE">
-  <link rel="manifest" href="manifest.webmanifest?v=20260716-16">
-  <link rel="icon" href="icons/icon.svg?v=20260716-16" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20260716-16">
-  <link rel="stylesheet" href="key-overlay.css?v=20260716-16">
-  <link rel="stylesheet" href="velocity-slider.css?v=20260716-16">
+  <link rel="manifest" href="manifest.webmanifest?v=20260716-17">
+  <link rel="icon" href="icons/icon.svg?v=20260716-17" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css?v=20260716-17">
+  <link rel="stylesheet" href="key-overlay.css?v=20260716-17">
+  <link rel="stylesheet" href="velocity-slider.css?v=20260716-17">
   <title>PocketPiano Control</title>
 </head>
 <body>
@@ -39,15 +39,15 @@
       </div>
       <figure class="module-octave">
         <div id="keyReadings" class="key-readings hidden" aria-label="Lecturas de las teclas del módulo"></div>
-        <img id="moduleImage" src="assets/module-0.svg?v=20260716-16" width="600" height="600" alt="Módulo 0 PocketPiano">
+        <img id="moduleImage" src="assets/module-0.svg?v=20260716-17" width="600" height="600" alt="Módulo 0 PocketPiano">
       </figure>
     </div>
   </section>
-  <section id="velocity" class="panel"><div class="card"><div class="section-head"><div><h2>Curvas de velocity</h2><p class="muted">Tiempos internos expresados en ms × 10</p></div><div class="button-row"><button id="readVelocityBtn">Leer</button><button id="writeVelocityBtn" class="primary">Guardar</button></div></div><div class="velocity-wrap"><div><h3>Teclas blancas</h3><div id="whiteVelocity" class="field-list"></div></div><div><h3>Teclas negras</h3><div id="blackVelocity" class="field-list"></div></div></div></div></section>
+  <section id="velocity" class="panel"><div class="card"><div class="section-head"><div><h2>Curvas de velocity</h2><p class="muted">Tiempos internos expresados en ms × 10 · rango 0–1200</p></div><div class="button-row"><button id="readVelocityBtn">Leer</button><button id="writeVelocityBtn" class="primary">Guardar</button></div></div><div class="velocity-wrap"><div><h3>Teclas blancas</h3><div id="whiteVelocity" class="field-list"></div></div><div><h3>Teclas negras</h3><div id="blackVelocity" class="field-list"></div></div></div></div></section>
   <section id="offsets" class="panel"><div class="card"><div class="section-head"><div><h2>Offset por tecla</h2><p class="muted">12 teclas del módulo seleccionado; rango entero de −32768 a 32767</p></div><div class="button-row"><button id="readOffsetsBtn">Leer</button><button id="writeOffsetsBtn" class="primary">Guardar</button></div></div><div id="offsetGrid" class="offset-grid"></div></div></section>
   <section id="console" class="panel"><div class="card"><div class="section-head"><div><h2>Consola BLE</h2><p class="muted">Registro de comandos y respuestas</p></div><button id="clearLogBtn">Limpiar</button></div><pre id="log"></pre></div></section>
 </main>
 <div id="toast" class="toast" role="status"></div>
-<script type="module" src="app-v3.js?v=20260716-16"></script>
+<script type="module" src="app-v3.js?v=20260716-17"></script>
 </body>
 </html>
