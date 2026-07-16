@@ -1,7 +1,7 @@
 (()=>{
   const activeNotes=new Map();
   const lastVelocity=new Map();
-  const MIDI_NOTE_OFFSET=-48;
+  const MIDI_NOTE_OFFSET=-24;
   let runningStatus=null;
 
   const noteNames=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
