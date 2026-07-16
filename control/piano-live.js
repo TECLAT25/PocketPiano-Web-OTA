@@ -2,13 +2,15 @@
   const activeNotes=new Map();
   const lastVelocity=new Map();
   const MIDI_NOTE_OFFSET=-24;
+  const MAX_LOG_LINES=120;
   let runningStatus=null;
+  let logLines=[];
 
   const noteNames=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
   const noteLabel=note=>`${noteNames[((note%12)+12)%12]}${Math.floor(note/12)-1}`;
 
   const noteToPosition=note=>{
-    if(note<21||note>107)return null;
+    if(!Number.isInteger(note)||note<21||note>107)return null;
     if(note<=23)return{module:0,key:note-11};
     const relative=note-24;
     return{module:1+Math.floor(relative/12),key:relative%12+1};
@@ -18,6 +20,16 @@
     ?11+key
     :24+(module-1)*12+(key-1);
 
+  const reportError=(context,error)=>{
+    console.error(`[PocketPiano MIDI] ${context}`,error);
+    const log=document.querySelector('#log');
+    if(!log)return;
+    logLines.push(`${new Date().toLocaleTimeString()} [ERROR] ${context}: ${error?.message||error}`);
+    if(logLines.length>MAX_LOG_LINES)logLines=logLines.slice(-MAX_LOG_LINES);
+    log.textContent=logLines.join('\n')+'\n';
+    log.scrollTop=log.scrollHeight;
+  };
+
   const appendReadableLog=(note,velocity,on)=>{
     const log=document.querySelector('#log');
     if(!log)return;
@@ -25,17 +37,25 @@
     const line=on
       ?`${time} [MIDI] Note On  ${noteLabel(note)} (${note}) velocity=${velocity}`
       :`${time} [MIDI] Note Off ${noteLabel(note)} (${note})`;
-    log.textContent+=line+'\n';
+    logLines.push(line);
+    if(logLines.length>MAX_LOG_LINES)logLines=logLines.slice(-MAX_LOG_LINES);
+    log.textContent=logLines.join('\n')+'\n';
     log.scrollTop=log.scrollHeight;
+  };
+
+  const updatePianoKey=(note,velocity,on)=>{
+    const key=document.querySelector(`.piano-live-key[data-midi-note="${note}"]`);
+    if(!key)return;
+    key.classList.toggle('active',on);
+    key.style.setProperty('--midi-strength',String(Math.max(.35,velocity/127)));
+    key.dataset.velocity=String(lastVelocity.get(note)||0);
   };
 
   const renderPiano=()=>{
     document.querySelectorAll('.piano-live-key').forEach(key=>{
       const note=Number(key.dataset.midiNote);
       const velocity=activeNotes.get(note)||0;
-      key.classList.toggle('active',velocity>0);
-      key.style.setProperty('--midi-strength',String(Math.max(.35,velocity/127)));
-      key.dataset.velocity=String(lastVelocity.get(note)||0);
+      updatePianoKey(note,velocity,velocity>0);
     });
   };
 
@@ -57,20 +77,24 @@
   };
 
   const setNote=(note,on,velocity=0,writeLog=false)=>{
-    const position=noteToPosition(note);
-    if(!position)return;
+    try{
+      const position=noteToPosition(note);
+      if(!position)return;
 
-    const effectiveVelocity=on?Math.max(1,Math.min(127,velocity||1)):0;
-    if(on){
-      activeNotes.set(note,effectiveVelocity);
-      lastVelocity.set(note,effectiveVelocity);
-    }else{
-      activeNotes.delete(note);
+      const effectiveVelocity=on?Math.max(1,Math.min(127,Number(velocity)||1)):0;
+      if(on){
+        activeNotes.set(note,effectiveVelocity);
+        lastVelocity.set(note,effectiveVelocity);
+      }else{
+        activeNotes.delete(note);
+      }
+
+      updatePianoKey(note,effectiveVelocity,on);
+      renderModuleReading(note,on?effectiveVelocity:0,on);
+      if(writeLog)appendReadableLog(note,effectiveVelocity,on);
+    }catch(error){
+      reportError('setNote',error);
     }
-
-    renderPiano();
-    renderModuleReading(note,on?effectiveVelocity:0,on);
-    if(writeLog)appendReadableLog(note,effectiveVelocity,on);
   };
 
   const messageDataLength=status=>{
@@ -81,120 +105,132 @@
   };
 
   const processMessage=(status,dataBytes)=>{
-    const type=status&0xF0;
-    if(type!==0x80&&type!==0x90)return;
-    const receivedNote=dataBytes[0];
-    const correctedNote=receivedNote+MIDI_NOTE_OFFSET;
-    const velocity=dataBytes[1]??0;
-    const on=type===0x90&&velocity>0;
-    setNote(correctedNote,on,velocity,true);
+    try{
+      const type=status&0xF0;
+      if(type!==0x80&&type!==0x90)return;
+      const receivedNote=Number(dataBytes[0]);
+      const correctedNote=receivedNote+MIDI_NOTE_OFFSET;
+      const velocity=Number(dataBytes[1]??0);
+      const on=type===0x90&&velocity>0;
+      setNote(correctedNote,on,velocity,true);
+    }catch(error){
+      reportError('processMessage',error);
+    }
   };
 
   const parseBleMidi=packet=>{
-    if(!packet||packet.length<2)return;
-    let i=1;
+    try{
+      if(!packet||packet.length<2)return;
+      let i=1;
 
-    while(i<packet.length){
-      const byte=packet[i];
+      while(i<packet.length){
+        const byte=packet[i];
 
-      if(byte>=0xF8){
-        i++;
-        continue;
-      }
+        if(byte>=0xF8){
+          i++;
+          continue;
+        }
 
-      if(byte&0x80){
-        const required=messageDataLength(byte);
-        if(required>0&&i+required<packet.length){
-          let valid=true;
-          for(let n=1;n<=required;n++){
-            if(packet[i+n]&0x80){valid=false;break;}
+        if(byte&0x80){
+          const required=messageDataLength(byte);
+          if(required>0&&i+required<packet.length){
+            let valid=true;
+            for(let n=1;n<=required;n++){
+              if(packet[i+n]&0x80){valid=false;break;}
+            }
+            if(valid){
+              runningStatus=byte;
+              const dataBytes=[];
+              for(let n=1;n<=required;n++)dataBytes.push(packet[i+n]);
+              processMessage(runningStatus,dataBytes);
+              i+=required+1;
+              continue;
+            }
           }
-          if(valid){
-            runningStatus=byte;
+          i++;
+          continue;
+        }
+
+        if(runningStatus!==null){
+          const required=messageDataLength(runningStatus);
+          if(required>0&&i+required-1<packet.length){
             const dataBytes=[];
-            for(let n=1;n<=required;n++)dataBytes.push(packet[i+n]);
-            processMessage(runningStatus,dataBytes);
-            i+=required+1;
-            continue;
+            let valid=true;
+            for(let n=0;n<required;n++){
+              const value=packet[i+n];
+              if(value&0x80){valid=false;break;}
+              dataBytes.push(value);
+            }
+            if(valid){
+              processMessage(runningStatus,dataBytes);
+              i+=required;
+              continue;
+            }
           }
         }
         i++;
-        continue;
       }
-
-      if(runningStatus!==null){
-        const required=messageDataLength(runningStatus);
-        if(required>0&&i+required-1<packet.length){
-          const dataBytes=[];
-          let valid=true;
-          for(let n=0;n<required;n++){
-            const value=packet[i+n];
-            if(value&0x80){valid=false;break;}
-            dataBytes.push(value);
-          }
-          if(valid){
-            processMessage(runningStatus,dataBytes);
-            i+=required;
-            continue;
-          }
-        }
-      }
-      i++;
+    }catch(error){
+      reportError('parseBleMidi',error);
     }
   };
 
   const refreshVisibleModule=()=>{
-    const activeModule=Number(document.querySelector('#activeModule')?.textContent);
-    document.querySelectorAll('.key-reading').forEach(reading=>{
-      const key=Number(reading.dataset.key);
-      const note=positionToNote(activeModule,key);
-      const velocity=activeNotes.get(note)||0;
-      const last=lastVelocity.get(note)||0;
-      const output=reading.querySelector('output');
-      if(output&&lastVelocity.has(note))output.textContent=String(velocity||last);
-      reading.classList.toggle('midi-active',velocity>0);
-      reading.style.setProperty('--midi-strength',String(Math.max(.35,velocity/127)));
-    });
+    try{
+      const activeModule=Number(document.querySelector('#activeModule')?.textContent);
+      document.querySelectorAll('.key-reading').forEach(reading=>{
+        const key=Number(reading.dataset.key);
+        const note=positionToNote(activeModule,key);
+        const velocity=activeNotes.get(note)||0;
+        const last=lastVelocity.get(note)||0;
+        const output=reading.querySelector('output');
+        if(output&&lastVelocity.has(note))output.textContent=String(velocity||last);
+        reading.classList.toggle('midi-active',velocity>0);
+        reading.style.setProperty('--midi-strength',String(Math.max(.35,velocity/127)));
+      });
+    }catch(error){
+      reportError('refreshVisibleModule',error);
+    }
   };
 
   const build=()=>{
-    document.querySelectorAll('.piano-module').forEach((figure,module)=>{
-      let layer=figure.querySelector('.piano-key-layer');
-      if(!layer){
-        layer=document.createElement('div');
-        layer.className='piano-key-layer';
-        figure.append(layer);
-      }
+    try{
+      document.querySelectorAll('.piano-module').forEach((figure,module)=>{
+        let layer=figure.querySelector('.piano-key-layer');
+        if(!layer){
+          layer=document.createElement('div');
+          layer.className='piano-key-layer';
+          figure.append(layer);
+        }
 
-      const keys=module===0?[10,11,12]:Array.from({length:12},(_,i)=>i+1);
-      layer.innerHTML=keys.map(key=>{
-        const note=positionToNote(module,key);
-        const black=[2,4,7,9,11].includes(key);
-        return `<button type="button" class="piano-live-key ${black?'black':'white'}" data-midi-note="${note}" aria-label="Módulo ${module}, tecla ${key}"></button>`;
-      }).join('');
-    });
-
-    document.querySelectorAll('.piano-live-key').forEach(key=>{
-      const note=Number(key.dataset.midiNote);
-      key.addEventListener('pointerdown',()=>setNote(note,true,96));
-      ['pointerup','pointercancel','pointerleave'].forEach(type=>{
-        key.addEventListener(type,()=>setNote(note,false,0));
+        const keys=module===0?[10,11,12]:Array.from({length:12},(_,i)=>i+1);
+        layer.innerHTML=keys.map(key=>{
+          const note=positionToNote(module,key);
+          const black=[2,4,7,9,11].includes(key);
+          return `<button type="button" class="piano-live-key ${black?'black':'white'}" data-midi-note="${note}" aria-label="Módulo ${module}, tecla ${key}"></button>`;
+        }).join('');
       });
-    });
 
-    const observer=new MutationObserver(refreshVisibleModule);
-    const activeModule=document.querySelector('#activeModule');
-    const readings=document.querySelector('#keyReadings');
-    if(activeModule)observer.observe(activeModule,{childList:true,characterData:true,subtree:true});
-    if(readings)observer.observe(readings,{childList:true,subtree:true});
+      document.querySelectorAll('.piano-live-key').forEach(key=>{
+        const note=Number(key.dataset.midiNote);
+        key.addEventListener('pointerdown',()=>setNote(note,true,96));
+        ['pointerup','pointercancel','pointerleave'].forEach(type=>{
+          key.addEventListener(type,()=>setNote(note,false,0));
+        });
+      });
 
-    renderPiano();
-    refreshVisibleModule();
+      // Se evita observar #keyReadings porque sus cambios MIDI pueden crear
+      // una cadena continua de mutaciones y bloquear el navegador.
+      renderPiano();
+      refreshVisibleModule();
+    }catch(error){
+      reportError('build',error);
+    }
   };
 
   window.addEventListener('pocketpiano-midi',event=>parseBleMidi(event.detail));
-  window.PocketPianoMidi={parseBleMidi,setNote,MIDI_NOTE_OFFSET};
+  window.PocketPianoMidi={parseBleMidi,setNote,refreshVisibleModule,MIDI_NOTE_OFFSET};
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build,{once:true});
   else build();
 })();
