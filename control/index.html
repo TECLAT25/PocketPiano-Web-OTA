@@ -30,13 +30,13 @@
   <nav class="tabs" aria-label="Secciones">
     <button class="tab active" data-tab="device">Dispositivo</button>
     <button class="tab" data-tab="velocity">Velocity</button>
-    <button class="tab" data-tab="offsets">Offsets</button>
+    <button class="tab" data-tab="offsets">Octava</button>
     <button class="tab" data-tab="console">Consola</button>
   </nav>
 
   <section id="device" class="panel active">
     <div class="card">
-      <div class="section-head"><div><h2>Módulo</h2><p class="muted">Selecciona uno de los siete módulos</p></div><button id="readModuleBtn">Leer datos</button></div>
+      <div class="section-head"><div><h2>Módulo</h2><p class="muted">Cada módulo representa una octava completa, de Do a Si</p></div><button id="readModuleBtn">Leer datos</button></div>
       <div id="moduleSelector" class="module-grid"></div>
       <div class="info-grid">
         <div><span>Nombre BLE</span><strong id="deviceName">—</strong></div>
@@ -58,9 +58,22 @@
   </section>
 
   <section id="offsets" class="panel">
-    <div class="card">
-      <div class="section-head"><div><h2>Offset por tecla</h2><p class="muted">12 teclas del módulo seleccionado; rango entero de −32768 a 32767</p></div><div class="button-row"><button id="readOffsetsBtn">Leer</button><button id="writeOffsetsBtn" class="primary">Guardar</button></div></div>
-      <div id="offsetGrid" class="offset-grid"></div>
+    <div class="card octave-card">
+      <div class="section-head">
+        <div>
+          <h2>Octava del módulo</h2>
+          <p class="muted">Cada tecla muestra su nota, número asociado y valor de tiempo recibido al pulsarla.</p>
+        </div>
+        <div class="button-row"><button id="readOffsetsBtn">Leer tiempos</button><button id="writeOffsetsBtn" class="primary">Guardar</button></div>
+      </div>
+      <div class="octave-legend" aria-label="Leyenda">
+        <span><i class="legend-white"></i> Tecla natural</span>
+        <span><i class="legend-black"></i> Sostenido</span>
+        <span>Valor editable de tiempo</span>
+      </div>
+      <div class="piano-scroll">
+        <div id="offsetGrid" class="offset-grid"></div>
+      </div>
     </div>
   </section>
 
@@ -74,5 +87,6 @@
 
 <div id="toast" class="toast" role="status"></div>
 <script type="module" src="app.js"></script>
+<script type="module" src="octave-ui.js"></script>
 </body>
 </html>
