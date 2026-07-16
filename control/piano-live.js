@@ -68,12 +68,13 @@
     const reading=document.querySelector(`.key-reading[data-key="${position.key}"]`);
     if(!reading)return;
 
+    const displayedVelocity=lastVelocity.get(note)||velocity||0;
     const output=reading.querySelector('output');
-    if(output)output.textContent=String(velocity);
+    if(output&&on)output.textContent=String(displayedVelocity);
     reading.classList.toggle('midi-active',on);
-    reading.style.setProperty('--midi-strength',String(Math.max(.35,velocity/127)));
+    reading.style.setProperty('--midi-strength',String(Math.max(.35,displayedVelocity/127)));
     reading.dataset.midiNote=String(note);
-    reading.dataset.velocity=String(velocity);
+    reading.dataset.velocity=String(displayedVelocity);
   };
 
   const setNote=(note,on,velocity=0,writeLog=false)=>{
@@ -89,8 +90,9 @@
         activeNotes.delete(note);
       }
 
-      updatePianoKey(note,effectiveVelocity,on);
-      renderModuleReading(note,on?effectiveVelocity:0,on);
+      const displayedVelocity=lastVelocity.get(note)||effectiveVelocity;
+      updatePianoKey(note,displayedVelocity,on);
+      renderModuleReading(note,displayedVelocity,on);
       if(writeLog)appendReadableLog(note,effectiveVelocity,on);
     }catch(error){
       reportError('setNote',error);
@@ -184,9 +186,10 @@
         const velocity=activeNotes.get(note)||0;
         const last=lastVelocity.get(note)||0;
         const output=reading.querySelector('output');
-        if(output&&lastVelocity.has(note))output.textContent=String(velocity||last);
+        if(output&&lastVelocity.has(note))output.textContent=String(last);
         reading.classList.toggle('midi-active',velocity>0);
-        reading.style.setProperty('--midi-strength',String(Math.max(.35,velocity/127)));
+        reading.style.setProperty('--midi-strength',String(Math.max(.35,(velocity||last)/127)));
+        reading.dataset.velocity=String(last);
       });
     }catch(error){
       reportError('refreshVisibleModule',error);
