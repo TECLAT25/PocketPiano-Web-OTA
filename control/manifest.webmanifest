@@ -1,0 +1,1 @@
+{"name":"PocketPiano Control","short_name":"PocketPiano","description":"Configuración de PocketPiano mediante Bluetooth LE","start_url":"./","scope":"./","display":"standalone","background_color":"#0d0f11","theme_color":"#15171a","orientation":"portrait","icons":[{"src":"icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
