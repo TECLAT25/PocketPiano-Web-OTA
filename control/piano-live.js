@@ -1,11 +1,11 @@
 (()=>{
   const activeNotes=new Map();
   const lastVelocity=new Map();
+  const MIDI_NOTE_OFFSET=-24;
   let runningStatus=null;
 
   const noteNames=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
-
-  const noteLabel=note=>`${noteNames[note%12]}${Math.floor(note/12)-1}`;
+  const noteLabel=note=>`${noteNames[((note%12)+12)%12]}${Math.floor(note/12)-1}`;
 
   const noteToPosition=note=>{
     if(note<21||note>107)return null;
@@ -83,10 +83,11 @@
   const processMessage=(status,dataBytes)=>{
     const type=status&0xF0;
     if(type!==0x80&&type!==0x90)return;
-    const note=dataBytes[0];
+    const receivedNote=dataBytes[0];
+    const correctedNote=receivedNote+MIDI_NOTE_OFFSET;
     const velocity=dataBytes[1]??0;
     const on=type===0x90&&velocity>0;
-    setNote(note,on,velocity,true);
+    setNote(correctedNote,on,velocity,true);
   };
 
   const parseBleMidi=packet=>{
@@ -192,7 +193,7 @@
   };
 
   window.addEventListener('pocketpiano-midi',event=>parseBleMidi(event.detail));
-  window.PocketPianoMidi={parseBleMidi,setNote};
+  window.PocketPianoMidi={parseBleMidi,setNote,MIDI_NOTE_OFFSET};
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);
   else build();
