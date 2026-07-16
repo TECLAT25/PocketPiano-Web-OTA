@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 360" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
   <title id="title">Octava de piano de Do a Si</title>
-  <desc id="desc">Siete teclas blancas y cinco teclas negras en una octava completa</desc>
+  <desc id="desc">Representación vectorial cuadrada basada en las proporciones de la imagen original</desc>
   <defs>
     <linearGradient id="top" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#3b3d40"/>
@@ -8,45 +8,45 @@
     </linearGradient>
     <linearGradient id="white" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#e9e9e9"/>
+      <stop offset="1" stop-color="#ededed"/>
     </linearGradient>
     <linearGradient id="black" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#242424"/>
-      <stop offset="1" stop-color="#060606"/>
+      <stop offset="1" stop-color="#050505"/>
     </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
-      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity=".45"/>
+    <filter id="shadow" x="-25%" y="-20%" width="150%" height="170%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity=".42"/>
     </filter>
   </defs>
 
   <g filter="url(#shadow)">
-    <rect x="20" y="20" width="940" height="48" rx="8" fill="url(#top)" stroke="#050505" stroke-width="4"/>
-    <rect x="24" y="64" width="932" height="8" fill="#e31919"/>
+    <rect x="105" y="72" width="390" height="50" rx="7" fill="url(#top)" stroke="#050505" stroke-width="4"/>
+    <rect x="108" y="117" width="384" height="7" fill="#e31919"/>
 
-    <g stroke="#111" stroke-width="4" fill="url(#white)">
-      <rect x="24" y="72" width="133.14" height="254" rx="0 0 7 7"/>
-      <rect x="157.14" y="72" width="133.14" height="254" rx="0 0 7 7"/>
-      <rect x="290.28" y="72" width="133.14" height="254" rx="0 0 7 7"/>
-      <rect x="423.42" y="72" width="133.14" height="254" rx="0 0 7 7"/>
-      <rect x="556.56" y="72" width="133.14" height="254" rx="0 0 7 7"/>
-      <rect x="689.70" y="72" width="133.14" height="254" rx="0 0 7 7"/>
-      <rect x="822.84" y="72" width="133.16" height="254" rx="0 0 7 7"/>
+    <g stroke="#111" stroke-width="3" fill="url(#white)">
+      <rect x="108" y="124" width="54.86" height="350" rx="0 0 4 4"/>
+      <rect x="162.86" y="124" width="54.86" height="350" rx="0 0 4 4"/>
+      <rect x="217.72" y="124" width="54.86" height="350" rx="0 0 4 4"/>
+      <rect x="272.58" y="124" width="54.86" height="350" rx="0 0 4 4"/>
+      <rect x="327.44" y="124" width="54.86" height="350" rx="0 0 4 4"/>
+      <rect x="382.30" y="124" width="54.86" height="350" rx="0 0 4 4"/>
+      <rect x="437.16" y="124" width="54.84" height="350" rx="0 0 4 4"/>
     </g>
 
-    <g fill="url(#black)" stroke="#050505" stroke-width="4">
-      <rect x="112" y="72" width="78" height="174" rx="0 0 7 7"/>
-      <rect x="245" y="72" width="78" height="174" rx="0 0 7 7"/>
-      <rect x="511" y="72" width="78" height="174" rx="0 0 7 7"/>
-      <rect x="644" y="72" width="78" height="174" rx="0 0 7 7"/>
-      <rect x="777" y="72" width="78" height="174" rx="0 0 7 7"/>
+    <g fill="url(#black)" stroke="#050505" stroke-width="3">
+      <rect x="145" y="124" width="34" height="218" rx="0 0 4 4"/>
+      <rect x="200" y="124" width="34" height="218" rx="0 0 4 4"/>
+      <rect x="310" y="124" width="34" height="218" rx="0 0 4 4"/>
+      <rect x="365" y="124" width="34" height="218" rx="0 0 4 4"/>
+      <rect x="420" y="124" width="34" height="218" rx="0 0 4 4"/>
     </g>
 
-    <g opacity=".22" stroke="#fff" stroke-width="3">
-      <line x1="126" y1="82" x2="126" y2="225"/>
-      <line x1="259" y1="82" x2="259" y2="225"/>
-      <line x1="525" y1="82" x2="525" y2="225"/>
-      <line x1="658" y1="82" x2="658" y2="225"/>
-      <line x1="791" y1="82" x2="791" y2="225"/>
+    <g opacity=".18" stroke="#fff" stroke-width="2">
+      <line x1="153" y1="134" x2="153" y2="325"/>
+      <line x1="208" y1="134" x2="208" y2="325"/>
+      <line x1="318" y1="134" x2="318" y2="325"/>
+      <line x1="373" y1="134" x2="373" y2="325"/>
+      <line x1="428" y1="134" x2="428" y2="325"/>
     </g>
   </g>
 </svg>
