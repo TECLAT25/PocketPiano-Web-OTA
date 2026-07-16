@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 360" role="img" aria-labelledby="title desc">
+  <title id="title">Octava de piano de Do a Si</title>
+  <desc id="desc">Siete teclas blancas y cinco teclas negras en una octava completa</desc>
+  <defs>
+    <linearGradient id="top" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b3d40"/>
+      <stop offset="1" stop-color="#111214"/>
+    </linearGradient>
+    <linearGradient id="white" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e9e9e9"/>
+    </linearGradient>
+    <linearGradient id="black" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#242424"/>
+      <stop offset="1" stop-color="#060606"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity=".45"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <rect x="20" y="20" width="940" height="48" rx="8" fill="url(#top)" stroke="#050505" stroke-width="4"/>
+    <rect x="24" y="64" width="932" height="8" fill="#e31919"/>
+
+    <g stroke="#111" stroke-width="4" fill="url(#white)">
+      <rect x="24" y="72" width="133.14" height="254" rx="0 0 7 7"/>
+      <rect x="157.14" y="72" width="133.14" height="254" rx="0 0 7 7"/>
+      <rect x="290.28" y="72" width="133.14" height="254" rx="0 0 7 7"/>
+      <rect x="423.42" y="72" width="133.14" height="254" rx="0 0 7 7"/>
+      <rect x="556.56" y="72" width="133.14" height="254" rx="0 0 7 7"/>
+      <rect x="689.70" y="72" width="133.14" height="254" rx="0 0 7 7"/>
+      <rect x="822.84" y="72" width="133.16" height="254" rx="0 0 7 7"/>
+    </g>
+
+    <g fill="url(#black)" stroke="#050505" stroke-width="4">
+      <rect x="112" y="72" width="78" height="174" rx="0 0 7 7"/>
+      <rect x="245" y="72" width="78" height="174" rx="0 0 7 7"/>
+      <rect x="511" y="72" width="78" height="174" rx="0 0 7 7"/>
+      <rect x="644" y="72" width="78" height="174" rx="0 0 7 7"/>
+      <rect x="777" y="72" width="78" height="174" rx="0 0 7 7"/>
+    </g>
+
+    <g opacity=".22" stroke="#fff" stroke-width="3">
+      <line x1="126" y1="82" x2="126" y2="225"/>
+      <line x1="259" y1="82" x2="259" y2="225"/>
+      <line x1="525" y1="82" x2="525" y2="225"/>
+      <line x1="658" y1="82" x2="658" y2="225"/>
+      <line x1="791" y1="82" x2="791" y2="225"/>
+    </g>
+  </g>
+</svg>
