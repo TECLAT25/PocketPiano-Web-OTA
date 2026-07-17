@@ -1,57 +1,56 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#6750a4">
-  <title>PocketPiano OTA · Android Web App</title>
-  <style>
-    :root{font-family:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;color:#1d1b20;background:#f7f2fa}
-    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f7f2fa}
-    .appbar{height:calc(72px + env(safe-area-inset-top));padding:calc(12px + env(safe-area-inset-top)) 18px 10px;background:#fffbfe;border-bottom:1px solid rgba(121,116,126,.18);display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2;box-shadow:0 2px 8px rgba(29,27,32,.06)}
-    .title{font-size:1.25rem;font-weight:700}.subtitle{font-size:.78rem;color:#625b71;margin-top:2px}.logo{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#eaddff;color:#21005d;font-weight:800}
-    iframe{display:block;width:100%;height:calc(100% - 72px - env(safe-area-inset-top));border:0;background:#f7f2fa}
-    .loading{position:fixed;inset:72px 0 0;display:grid;place-items:center;background:#f7f2fa;color:#6750a4;font-weight:700;z-index:1}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>PocketPiano App</title>
+<style>
+:root{--bg:#000;--surface:#111;--surface2:#191919;--text:#fff;--muted:#999;--line:#292929;--red:#c4002f;--ok:#39d98a;font-family:Inter,Roboto,system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);overflow:hidden}button{font:inherit}
+.splash{position:fixed;inset:0;z-index:100;background:#000;display:grid;place-items:center;transition:.5s opacity,.5s visibility}.splash.hide{opacity:0;visibility:hidden}.splash img{width:min(58vw,260px);filter:brightness(0) invert(1)}.pulse{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 rgba(196,0,47,.7);animation:p 1.5s infinite;margin:26px auto 0}@keyframes p{70%{box-shadow:0 0 0 15px rgba(196,0,47,0)}100%{box-shadow:0 0 0 0 rgba(196,0,47,0)}}
+.app{height:100%;display:grid;grid-template-rows:auto 1fr auto;background:radial-gradient(circle at 70% -10%,#231015 0,transparent 35%),#000}
+.top{padding:calc(18px + env(safe-area-inset-top)) 20px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.86);backdrop-filter:blur(20px)}.top img{width:118px;filter:brightness(0) invert(1)}.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#151515;border:1px solid #2b2b2b;font-size:.78rem;font-weight:800}
+.frame-wrap{position:relative;overflow:hidden}iframe{width:100%;height:100%;border:0;background:#000}.overlay{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.12),transparent 18%)}
+.nav{display:grid;grid-template-columns:repeat(4,1fr);padding:9px 10px calc(9px + env(safe-area-inset-bottom));background:rgba(8,8,8,.96);border-top:1px solid var(--line);backdrop-filter:blur(20px)}.nav button{border:0;background:transparent;color:#747474;display:grid;place-items:center;gap:4px;min-height:54px;border-radius:16px;font-size:.69rem;font-weight:700}.nav button.active{color:#fff;background:#171717}.ico{font-size:1.15rem;line-height:1}.dot{width:5px;height:5px;border-radius:50%;background:var(--red);opacity:0}.active .dot{opacity:1}
+</style>
 </head>
 <body>
-  <header class="appbar">
-    <div><div class="title">PocketPiano OTA</div><div class="subtitle">Aplicación web para Android</div></div>
-    <div class="logo">PP</div>
-  </header>
-  <div id="loading" class="loading">Cargando aplicación…</div>
-  <iframe id="app" src="./index.html" title="PocketPiano OTA"></iframe>
-  <script>
-    const frame=document.getElementById('app');
-    frame.addEventListener('load',()=>{
-      const doc=frame.contentDocument;
-      if(!doc)return;
-      document.getElementById('loading').remove();
-      const style=doc.createElement('style');
-      style.textContent=`
-        :root{font-family:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif!important;color:#1d1b20!important;background:#f7f2fa!important;--primary:#6750a4;--container:#eaddff}
-        html,body{background:linear-gradient(180deg,#f7f2fa,#fffbfe)!important}
-        body{padding-bottom:calc(88px + env(safe-area-inset-bottom))!important}
-        .shell{width:min(680px,100%)!important;padding:16px 16px 40px!important}
-        .hero{padding:14px 4px 8px!important}.hero .brand{display:inline-flex!important;background:#eaddff!important;color:#21005d!important;padding:7px 12px!important;border-radius:999px!important;letter-spacing:0!important;text-transform:none!important}
-        h1{font-size:clamp(2rem,9vw,3rem)!important;letter-spacing:-.04em!important}.hero p{color:#625b71!important}
-        .card{border-radius:28px!important;padding:20px!important;background:#fffbfe!important;border:1px solid rgba(121,116,126,.14)!important;box-shadow:0 2px 8px rgba(29,27,32,.06)!important}
-        .status-card{background:#eaddff!important;color:#21005d!important}.badge{background:rgba(33,0,93,.08)!important}.badge.connected{background:#c8f7d4!important;color:#0f5223!important}
-        h2{font-size:1.18rem!important}.eyebrow,dt,.hint{color:#625b71!important}
-        button{min-height:52px!important;border-radius:999px!important;font-weight:700!important;-webkit-tap-highlight-color:transparent!important}
-        .primary{background:#6750a4!important;color:#fff!important;box-shadow:0 4px 12px rgba(103,80,164,.24)!important}.secondary{background:#e7e0ec!important;color:#1d1b20!important}.danger{background:#b3261e!important}
-        .file-picker{border-radius:20px!important;border-color:#79747e!important;background:#fff!important;padding:22px!important}
-        select{border-radius:14px!important;padding:14px!important}.warning{background:#ffede6!important;color:#7a2e0e!important;border-radius:18px!important}.log{border-radius:18px!important;background:#1d1b20!important}
-        progress{accent-color:#6750a4!important}
-        @media(max-width:480px){.details div{grid-template-columns:92px 1fr!important}.card{padding:18px!important}}
-      `;
-      doc.head.appendChild(style);
-      const nav=doc.createElement('nav');
-      nav.innerHTML='<a href="#" data-target="connectBtn"><b>◉</b><span>Conectar</span></a><a href="#" data-target="firmwareInput"><b>⇧</b><span>Firmware</span></a><a href="#" data-target="log"><b>⚙</b><span>Técnico</span></a>';
-      nav.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(680px,100%);display:grid;grid-template-columns:repeat(3,1fr);padding:8px 18px calc(8px + env(safe-area-inset-bottom));background:rgba(255,251,254,.97);backdrop-filter:blur(18px);border-top:1px solid rgba(121,116,126,.18);z-index:9999';
-      nav.querySelectorAll('a').forEach(a=>{a.style.cssText='min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#625b71;text-decoration:none;font-size:.72rem;font-weight:700;border-radius:18px';a.addEventListener('click',e=>{e.preventDefault();const target=doc.getElementById(a.dataset.target);if(target){if(a.dataset.target==='log')target.closest('details').open=true;target.scrollIntoView({behavior:"smooth",block:"center"})}})});
-      doc.body.appendChild(nav);
-    });
-  </script>
+<div class="splash" id="splash"><div><img alt="PocketPiano" src="./logo-pocket-black.png"><div class="pulse"></div></div></div>
+<div class="app">
+<header class="top"><img alt="PocketPiano" src="./logo-pocket-black.png"><div class="avatar">PP</div></header>
+<div class="frame-wrap"><iframe id="core" src="./index.html" title="PocketPiano"></iframe><div class="overlay"></div></div>
+<nav class="nav" aria-label="Navegación">
+<button class="active" data-target="status"><span class="ico">●</span><span>Inicio</span><span class="dot"></span></button>
+<button data-target="firmwareInput"><span class="ico">⇧</span><span>Firmware</span><span class="dot"></span></button>
+<button data-target="connectBtn"><span class="ico">⌁</span><span>Instrumento</span><span class="dot"></span></button>
+<button data-target="log"><span class="ico">⚙</span><span>Diagnóstico</span><span class="dot"></span></button>
+</nav>
+</div>
+<script>
+const splash=document.getElementById('splash');
+setTimeout(()=>splash.classList.add('hide'),1200);
+const frame=document.getElementById('core');
+frame.addEventListener('load',()=>{
+ const d=frame.contentDocument;if(!d)return;
+ const style=d.createElement('style');style.textContent=`
+ :root{font-family:Inter,Roboto,system-ui,-apple-system,"Segoe UI",sans-serif!important;color:#fff!important;background:#000!important}
+ html,body{background:#000!important;color:#fff!important}body{padding-bottom:28px!important}.shell{width:min(700px,100%)!important;padding:16px 16px 38px!important}
+ .hero{padding:14px 4px 10px!important}.brand{display:none!important}h1{font-size:clamp(2rem,9vw,3.2rem)!important;letter-spacing:-.055em!important;line-height:.95!important;margin:6px 0 12px!important}p,.hint,dt,.eyebrow{color:#999!important}
+ .card{background:#111!important;color:#fff!important;border:1px solid #282828!important;border-radius:24px!important;box-shadow:none!important;padding:20px!important;margin-top:14px!important}
+ .status-card{background:linear-gradient(135deg,#191919,#0e0e0e)!important}.status{font-size:1.25rem!important}.badge{background:#242424!important;color:#aaa!important}.badge.connected{background:rgba(57,217,138,.13)!important;color:#39d98a!important;border:1px solid rgba(57,217,138,.25)!important}
+ button{min-height:54px!important;border-radius:999px!important;font-weight:800!important;letter-spacing:.01em!important}.primary{background:#c4002f!important;color:#fff!important;box-shadow:0 8px 24px rgba(196,0,47,.22)!important}.secondary{background:#242424!important;color:#fff!important}.danger{background:#c4002f!important}
+ .file-picker{border:1px dashed #555!important;background:#171717!important;border-radius:20px!important;padding:22px!important}input,select{color:#fff!important;background:#181818!important;border-color:#393939!important}select{border-radius:14px!important;padding:14px!important}
+ .details div{border-color:#292929!important}.warning{background:#241316!important;color:#ffb3c1!important;border:1px solid #4b1c26!important;border-radius:18px!important}progress{accent-color:#c4002f!important;height:14px!important}.log{background:#060606!important;color:#b8ffd4!important;border:1px solid #252525!important;border-radius:18px!important}
+ details.advanced{background:#0c0c0c!important;border-radius:18px!important}@media(max-width:480px){.card{padding:18px!important}.details div{grid-template-columns:92px 1fr!important}}
+ `;d.head.appendChild(style);
+});
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x===b));
+ const d=frame.contentDocument;if(!d)return;const id=b.dataset.target;let el=d.getElementById(id);
+ if(id==='status') el=d.querySelector('.status-card')||d.body;
+ if(el){if(id==='log'){const det=el.closest('details');if(det)det.open=true}el.scrollIntoView({behavior:'smooth',block:'center'});}
+}));
+</script>
 </body>
 </html>
