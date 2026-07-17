@@ -6,52 +6,47 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="theme-color" content="#15171a">
-  <meta name="description" content="Configuración y diagnóstico de PocketPiano mediante Bluetooth LE">
-  <link rel="manifest" href="manifest.webmanifest?v=20260716-25">
-  <link rel="icon" href="icons/icon.svg?v=20260716-25" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20260716-25">
-  <link rel="stylesheet" href="key-overlay.css?v=20260716-25">
-  <link rel="stylesheet" href="velocity-slider.css?v=20260716-25">
-  <link rel="stylesheet" href="piano-fit.css?v=20260716-25">
-  <link rel="stylesheet" href="piano-live.css?v=20260716-25">
-  <title>PocketPiano Control</title>
+  <meta name="theme-color" content="#050505">
+  <meta name="description" content="PocketPiano Control Center · configuración, calibración y diagnóstico Bluetooth LE">
+  <link rel="manifest" href="manifest.webmanifest?v=20260717-v3">
+  <link rel="icon" href="icons/icon.svg?v=20260717-v3" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css?v=20260717-v3">
+  <link rel="stylesheet" href="key-overlay.css?v=20260717-v3">
+  <link rel="stylesheet" href="velocity-slider.css?v=20260717-v3">
+  <link rel="stylesheet" href="piano-fit.css?v=20260717-v3">
+  <link rel="stylesheet" href="piano-live.css?v=20260717-v3">
+  <title>PocketPiano Control Center</title>
 </head>
 <body>
 <header class="topbar">
-  <div><p class="eyebrow">POCKETPIANO</p><h1>Control BLE</h1></div>
+  <div class="brand-lockup" aria-label="PocketPiano">
+    <div class="brand-wordmark"><span>POCKET</span><span>PIANO</span></div>
+    <div class="brand-copy"><strong>CONTROL CENTER</strong><small>Firmware · MIDI · Calibration</small></div>
+  </div>
   <span id="statusBadge" class="badge offline">Desconectado</span>
 </header>
 <main>
-  <section class="card connection-card">
-    <div><h2>Conexión</h2><p id="deviceInfo" class="muted">Ningún dispositivo seleccionado</p></div>
-    <div class="button-row"><button id="connectBtn" class="primary">Conectar piano</button><button id="disconnectBtn" disabled>Desconectar</button></div>
-    <label class="switch-row"><input id="simulatorToggle" type="checkbox"><span>Modo simulación</span></label>
+  <section class="card connection-card hero-card">
+    <div class="connection-copy"><span class="section-kicker">POCKETPIANO DEVICE</span><h2>Conecta y configura tu piano</h2><p id="deviceInfo" class="muted">Ningún dispositivo seleccionado</p></div>
+    <div class="connection-actions"><div class="button-row"><button id="connectBtn" class="primary">Conectar piano</button><button id="disconnectBtn" disabled>Desconectar</button></div><label class="switch-row"><input id="simulatorToggle" type="checkbox"><span>Modo simulación</span></label></div>
     <div id="compatWarning" class="warning hidden"></div>
   </section>
   <nav class="tabs" aria-label="Secciones">
-    <button class="tab active" data-tab="device">Dispositivo</button><button class="tab" data-tab="velocity">Velocity</button><button class="tab" data-tab="offsets">Offsets</button><button class="tab" data-tab="console">Consola</button><button class="tab" data-tab="piano">Piano</button>
+    <button class="tab active" data-tab="device"><span>01</span>Dispositivo</button>
+    <button class="tab" data-tab="velocity"><span>02</span>Velocity</button>
+    <button class="tab" data-tab="offsets"><span>03</span>Offsets</button>
+    <button class="tab" data-tab="console"><span>04</span>Consola</button>
+    <button class="tab" data-tab="piano"><span>05</span>Piano</button>
   </nav>
-  <section id="device" class="panel active">
-    <div class="card">
-      <div class="section-head"><div><h2>Módulo</h2><p class="muted">Selecciona uno de los ocho módulos</p></div><button id="readModuleBtn">Leer datos</button></div>
-      <div id="moduleSelector" class="module-grid"><button class="module-button active">0</button><button class="module-button">1</button><button class="module-button">2</button><button class="module-button">3</button><button class="module-button">4</button><button class="module-button">5</button><button class="module-button">6</button><button class="module-button">7</button></div>
-      <div class="info-grid">
-        <div><span>Nombre BLE</span><strong id="deviceName">—</strong></div><div><span>Número de serie</span><strong id="serialNumber">—</strong></div><div><span>Firmware</span><strong id="firmwareVersion">—</strong></div><div><span>Módulo activo</span><strong id="activeModule">0</strong></div>
-      </div>
-      <figure class="module-octave">
-        <div id="keyReadings" class="key-readings hidden" aria-label="Lecturas de las teclas del módulo"></div>
-        <img id="moduleImage" src="assets/module-0.svg?v=20260716-25" width="600" height="600" alt="Módulo 0 PocketPiano">
-      </figure>
-    </div>
-  </section>
-  <section id="velocity" class="panel"><div class="card"><div class="section-head"><div><h2>Curvas de velocity</h2><p class="muted">Tiempos internos expresados en ms × 10 · rango 0–1200</p></div><div class="button-row"><button id="readVelocityBtn">Leer</button><button id="writeVelocityBtn" class="primary">Guardar</button></div></div><div class="velocity-wrap"><div><h3>Teclas blancas</h3><div id="whiteVelocity" class="field-list"></div></div><div><h3>Teclas negras</h3><div id="blackVelocity" class="field-list"></div></div></div></div></section>
-  <section id="offsets" class="panel"><div class="card"><div class="section-head"><div><h2>Offset por tecla</h2><p class="muted">12 teclas del módulo seleccionado; rango entero de −32768 a 32767</p></div><div class="button-row"><button id="readOffsetsBtn">Leer</button><button id="writeOffsetsBtn" class="primary">Guardar</button></div></div><div id="offsetGrid" class="offset-grid"></div></div></section>
-  <section id="console" class="panel"><div class="card"><div class="section-head"><div><h2>Consola BLE</h2><p class="muted">Registro de comandos y respuestas</p></div><div class="button-row"><button id="consoleReadVelocityBtn" onclick="document.getElementById('readVelocityBtn').click()">Leer Velocity</button><button id="clearLogBtn">Limpiar</button></div></div><pre id="log"></pre></div></section>
-  <section id="piano" class="panel"><div class="card"><div class="section-head"><div><h2>Piano completo</h2><p class="muted">Vista conjunta de los módulos 0 a 7 · iluminación MIDI en tiempo real</p></div></div><div class="piano-scroll"><div class="piano-modules"><figure class="piano-module"><figcaption>Módulo 0</figcaption><img src="assets/module-0.svg?v=20260716-25" alt="Módulo 0 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 1</figcaption><img src="assets/module-octave.svg?v=20260716-25" alt="Módulo 1 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 2</figcaption><img src="assets/module-octave.svg?v=20260716-25" alt="Módulo 2 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 3</figcaption><img src="assets/module-octave.svg?v=20260716-25" alt="Módulo 3 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 4</figcaption><img src="assets/module-octave.svg?v=20260716-25" alt="Módulo 4 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 5</figcaption><img src="assets/module-octave.svg?v=20260716-25" alt="Módulo 5 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 6</figcaption><img src="assets/module-octave.svg?v=20260716-25" alt="Módulo 6 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 7</figcaption><img src="assets/module-octave.svg?v=20260716-25" alt="Módulo 7 PocketPiano"></figure></div></div></div></section>
+  <section id="device" class="panel active"><div class="card"><div class="section-head"><div><span class="section-kicker">HARDWARE</span><h2>Módulo activo</h2><p class="muted">Selecciona uno de los ocho módulos PocketPiano</p></div><button id="readModuleBtn">Leer datos</button></div><div id="moduleSelector" class="module-grid"><button class="module-button active">0</button><button class="module-button">1</button><button class="module-button">2</button><button class="module-button">3</button><button class="module-button">4</button><button class="module-button">5</button><button class="module-button">6</button><button class="module-button">7</button></div><div class="info-grid"><div><span>Nombre BLE</span><strong id="deviceName">—</strong></div><div><span>Número de serie</span><strong id="serialNumber">—</strong></div><div><span>Firmware</span><strong id="firmwareVersion">—</strong></div><div><span>Módulo activo</span><strong id="activeModule">0</strong></div></div><figure class="module-octave"><div id="keyReadings" class="key-readings hidden" aria-label="Lecturas de las teclas del módulo"></div><img id="moduleImage" src="assets/module-0.svg?v=20260717-v3" width="600" height="600" alt="Módulo 0 PocketPiano"></figure></div></section>
+  <section id="velocity" class="panel"><div class="card"><div class="section-head"><div><span class="section-kicker">RESPONSE CURVE</span><h2>Curvas de velocity</h2><p class="muted">Tiempos internos en ms × 10 · rango 0–1200</p></div><div class="button-row"><button id="readVelocityBtn">Leer</button><button id="writeVelocityBtn" class="primary">Guardar</button></div></div><div class="velocity-wrap"><div><h3>Teclas blancas</h3><div id="whiteVelocity" class="field-list"></div></div><div><h3>Teclas negras</h3><div id="blackVelocity" class="field-list"></div></div></div></div></section>
+  <section id="offsets" class="panel"><div class="card"><div class="section-head"><div><span class="section-kicker">CALIBRATION</span><h2>Offset por tecla</h2><p class="muted">12 teclas del módulo seleccionado</p></div><div class="button-row"><button id="readOffsetsBtn">Leer</button><button id="writeOffsetsBtn" class="primary">Guardar</button></div></div><div id="offsetGrid" class="offset-grid"></div></div></section>
+  <section id="console" class="panel"><div class="card console-card"><div class="section-head"><div><span class="section-kicker">DIAGNOSTICS</span><h2>Consola BLE</h2><p class="muted">Registro en tiempo real de comandos y respuestas</p></div><div class="button-row"><button id="consoleReadVelocityBtn" onclick="document.getElementById('readVelocityBtn').click()">Leer Velocity</button><button id="clearLogBtn">Limpiar</button></div></div><pre id="log"></pre></div></section>
+  <section id="piano" class="panel"><div class="card"><div class="section-head"><div><span class="section-kicker">LIVE MIDI</span><h2>Piano completo</h2><p class="muted">Módulos 0 a 7 · iluminación MIDI en tiempo real</p></div></div><div class="piano-scroll"><div class="piano-modules"><figure class="piano-module"><figcaption>Módulo 0</figcaption><img src="assets/module-0.svg?v=20260717-v3" alt="Módulo 0 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 1</figcaption><img src="assets/module-octave.svg?v=20260717-v3" alt="Módulo 1 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 2</figcaption><img src="assets/module-octave.svg?v=20260717-v3" alt="Módulo 2 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 3</figcaption><img src="assets/module-octave.svg?v=20260717-v3" alt="Módulo 3 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 4</figcaption><img src="assets/module-octave.svg?v=20260717-v3" alt="Módulo 4 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 5</figcaption><img src="assets/module-octave.svg?v=20260717-v3" alt="Módulo 5 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 6</figcaption><img src="assets/module-octave.svg?v=20260717-v3" alt="Módulo 6 PocketPiano"></figure><figure class="piano-module"><figcaption>Módulo 7</figcaption><img src="assets/module-octave.svg?v=20260717-v3" alt="Módulo 7 PocketPiano"></figure></div></div></div></section>
 </main>
+<footer class="app-footer"><span>POCKETPIANO</span><small>Control Center v3</small></footer>
 <div id="toast" class="toast" role="status"></div>
-<script src="piano-live.js?v=20260716-25"></script>
-<script type="module" src="app-v3.js?v=20260716-25"></script>
+<script src="piano-live.js?v=20260717-v3"></script>
+<script type="module" src="app-v3.js?v=20260717-v3"></script>
 </body>
 </html>
