@@ -116,6 +116,7 @@ select { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #d1d5db;
 'use strict';
 
 const UUID = {
+  midi: '03b80e5a-ede8-4b33-a751-6ce34ec4c700',
   service: '00008018-0000-1000-8000-00805f9b34fb',
   firmware: '00008020-0000-1000-8000-00805f9b34fb',
   progress: '00008021-0000-1000-8000-00805f9b34fb',
@@ -246,7 +247,10 @@ async function connect() {
   if (el.demoMode.checked) { setStatus('Modo simulación activado'); updateControls(); return; }
   if (!navigator.bluetooth) throw new Error('Este navegador no admite Web Bluetooth. Usa Chrome en Android mediante HTTPS.');
   setStatus('Selecciona el PocketPiano…');
-  device = await navigator.bluetooth.requestDevice({ filters: [{ services: [UUID.service] }], optionalServices: [UUID.service] });
+  device = await navigator.bluetooth.requestDevice({
+    filters: [{ services: [UUID.midi] }],
+    optionalServices: [UUID.service]
+  });
   device.addEventListener('gattserverdisconnected', onDisconnected);
   setStatus('Conectando por Bluetooth…');
   server = await device.gatt.connect();
