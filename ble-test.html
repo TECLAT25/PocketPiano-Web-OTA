@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Diagnóstico BLE PocketPiano</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#000;color:#fff}*{box-sizing:border-box}body{margin:0;padding:24px}.card{max-width:620px;margin:auto;background:#111;border:1px solid #2b2b2b;border-radius:22px;padding:22px}h1{margin-top:0;font-size:1.8rem}p{color:#aaa;line-height:1.5}button{width:100%;min-height:54px;border:0;border-radius:999px;background:#c4002f;color:#fff;font-weight:800;font-size:1rem}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#050505;border:1px solid #2b2b2b;border-radius:16px;padding:14px;min-height:180px;color:#b8ffd4}.ok{color:#39d98a}.bad{color:#ff9baa}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>Diagnóstico BLE PocketPiano</h1>
+<p>Esta prueba no filtra por nombre ni por servicio anunciado. Chrome mostrará todos los dispositivos Bluetooth Low Energy cercanos. Selecciona el PocketPiano y la página comprobará después si dispone del servicio OTA 8018.</p>
+<button id="scan">Buscar dispositivos BLE</button>
+<pre id="log">Preparado.</pre>
+</div>
+<script>
+'use strict';
+const OTA_SERVICE='00008018-0000-1000-8000-00805f9b34fb';
+const log=document.getElementById('log');
+const write=(text,cls='')=>{log.className=cls;log.textContent=text};
+document.getElementById('scan').addEventListener('click',async()=>{
+ try{
+  if(!window.isSecureContext) throw new Error('La página no está en un contexto HTTPS seguro.');
+  if(!navigator.bluetooth) throw new Error('Este navegador no ofrece Web Bluetooth. Abre la página en Chrome para Android.');
+  write('Abriendo selector Bluetooth…');
+  const device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[OTA_SERVICE]});
+  write(`Dispositivo seleccionado:\nNombre: ${device.name||'(sin nombre)'}\nID: ${device.id}\n\nConectando…`);
+  const server=await device.gatt.connect();
+  let service;
+  try{service=await server.getPrimaryService(OTA_SERVICE)}catch(e){throw new Error(`El dispositivo seleccionado se conecta, pero no expone el servicio OTA 8018. Detalle: ${e.message}`)}
+  const characteristics=await service.getCharacteristics();
+  write(`PocketPiano detectado correctamente.\nNombre: ${device.name||'(sin nombre)'}\nServicio OTA: 8018\nCaracterísticas: ${characteristics.map(c=>c.uuid).join('\n')}`,'ok');
+ }catch(e){
+  write(`ERROR\n${e.name||'Error'}: ${e.message}`,'bad');
+ }
+});
+</script>
+</body>
+</html>
