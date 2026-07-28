@@ -70,13 +70,12 @@ select{width:100%;padding:12px;margin-top:8px;border:1px solid var(--border);bor
 .language-code{font-size:.8rem;letter-spacing:.06em}
 .language-chevron{font-size:.68rem;line-height:1;transition:transform .18s ease}
 .language-toggle[aria-expanded="true"] .language-chevron{transform:rotate(180deg)}
-.language-menu{position:absolute;top:50px;left:0;right:auto;width:200px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 14px 35px rgba(15,23,42,.18);transform-origin:top left;animation:languageMenuIn .16s ease}
-.language-menu[hidden]{display:none}
-.language-menu label{display:block;font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:750}
-.language-menu select{margin-top:7px;padding:10px}
-@keyframes languageMenuIn{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.language-menu{position:absolute;inset:0;width:100%;height:42px;padding:0;background:transparent;border:0;box-shadow:none}
+.language-menu label{display:none}
+.language-menu select{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
+.language-toggle{pointer-events:none}
 @media(min-width:600px){.shell{padding-top:48px}}
-@media(max-width:420px){.hero{padding-top:36px}.brand{margin-top:20px}.brand-logo{width:210px}.header-actions{left:0;right:0}.language-menu{width:min(200px,calc(100vw - 32px))}}
+@media(max-width:420px){.hero{padding-top:36px}.brand{margin-top:20px}.brand-logo{width:210px}.header-actions{left:0;right:0}.language-menu{width:100%;height:42px}}
   </style>
 </head>
 <body>
@@ -89,7 +88,7 @@ select{width:100%;padding:12px;margin-top:8px;border:1px solid var(--border);bor
             <span id="languageCode" class="language-code">ES</span>
             <span class="language-chevron" aria-hidden="true">▾</span>
           </button>
-          <div id="languageMenu" class="language-menu" hidden>
+          <div id="languageMenu" class="language-menu">
             <label id="languageLabel" for="languageSelect">Idioma</label>
             <select id="languageSelect">
               <option value="es">Español</option><option value="en">English</option><option value="ca">Català</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="it">Italiano</option><option value="pt">Português</option>
@@ -160,8 +159,7 @@ let currentLanguage=document.documentElement.lang in translations?document.docum
 const t=(key,vars={})=>Object.entries(vars).reduce((s,[k,v])=>s.replace(`{${k}}`,v),translations[currentLanguage][key]||translations.es[key]||key);
 function applyTheme(theme,save=true){document.documentElement.dataset.theme=theme;const dark=theme==='dark';el.themeToggle.setAttribute('aria-label',dark?t('lightTheme'):t('darkTheme'));el.themeToggle.title=dark?t('lightTheme'):t('darkTheme');document.querySelector('meta[name="theme-color"]').setAttribute('content',dark?'#0f172a':'#f3f4f6');if(save)localStorage.setItem('pocketpiano-theme',theme)}
 function applyLanguage(language,save=true){currentLanguage=translations[language]?language:'es';document.documentElement.lang=currentLanguage;el.languageSelect.value=currentLanguage;el.languageCode.textContent=currentLanguage.toUpperCase();document.querySelectorAll('[data-i18n]').forEach(node=>node.textContent=t(node.dataset.i18n));document.querySelectorAll('[data-i18n-html]').forEach(node=>node.innerHTML=t(node.dataset.i18nHtml));el.languageLabel.textContent=t('language');el.languageToggle.setAttribute('aria-label',t('changeLanguage'));el.languageToggle.title=t('changeLanguage');document.title=`PocketPiano · ${t('title')}`;applyTheme(document.documentElement.dataset.theme||'light',false);refreshCompatibility();updateControls();if(!running&&!server?.connected&&!el.demoMode.checked)setStatus(t('ready'),false);if(save)localStorage.setItem('pocketpiano-language',currentLanguage)}
-function setLanguageMenu(open){el.languageMenu.hidden=!open;el.languageToggle.setAttribute('aria-expanded',String(open))}
-el.languageToggle.addEventListener('click',event=>{event.stopPropagation();setLanguageMenu(el.languageMenu.hidden)});el.languageMenu.addEventListener('click',event=>event.stopPropagation());document.addEventListener('click',()=>setLanguageMenu(false));document.addEventListener('keydown',event=>{if(event.key==='Escape')setLanguageMenu(false)});el.languageSelect.addEventListener('change',()=>{applyLanguage(el.languageSelect.value);setLanguageMenu(false)});
+el.languageSelect.addEventListener('change',()=>applyLanguage(el.languageSelect.value));
 applyTheme(document.documentElement.dataset.theme||'light',false);el.themeToggle.addEventListener('click',()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
 let device=null,server=null,chars={},firmwareFile=null,firmwareBytes=null,abortRequested=false,running=false,commandWaiter=null,sectorWaiter=null,logLines=[];
 function log(message,data){const line=`${new Date().toISOString()}  ${message}${data===undefined?'':` ${JSON.stringify(data)}`}`;logLines.push(line);el.log.textContent=logLines.join('\n');el.log.scrollTop=el.log.scrollHeight}
