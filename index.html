@@ -12,7 +12,18 @@ body { margin: 0; min-height: 100vh; }
 button, input, select { font: inherit; }
 .shell { width: min(760px, 100%); margin: auto; padding: 24px 16px 48px; }
 .hero { padding: 16px 4px 10px; }
-.brand { font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .82rem; }
+.brand {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.brand-logo {
+  width: 260px;
+  max-width: 90%;
+  height: auto;
+  display: block;
+}
 h1 { margin: 8px 0; font-size: clamp(2rem, 8vw, 3.4rem); line-height: 1; }
 h2 { margin: 0 0 16px; font-size: 1.15rem; }
 p { line-height: 1.5; }
@@ -49,7 +60,9 @@ select { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #d1d5db;
 <body>
   <main class="shell">
     <header class="hero">
-      <div class="brand">PocketPiano</div>
+      <div class="brand">
+      <img src="pocketpiano-logo.svg" alt="PocketPiano" class="brand-logo" />
+    </div>
       <h1>Actualización de firmware</h1>
       <p>Conecta el piano por Bluetooth y carga un firmware <strong>.bin</strong> desde Chrome en Android.</p>
     </header>
