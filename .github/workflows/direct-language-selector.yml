@@ -1,0 +1,60 @@
+name: Apply direct language selector
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply-change:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make language button open native selector directly
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+
+          old_css = ".language-menu{position:absolute;top:50px;left:0;right:auto;width:200px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 14px 35px rgba(15,23,42,.18);transform-origin:top left;animation:languageMenuIn .16s ease}\n.language-menu[hidden]{display:none}\n.language-menu label{display:block;font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:750}\n.language-menu select{margin-top:7px;padding:10px}\n@keyframes languageMenuIn{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}"
+          new_css = ".language-menu{position:absolute;inset:0;width:100%;height:42px;padding:0;background:transparent;border:0;box-shadow:none}\n.language-menu label{display:none}\n.language-menu select{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}\n.language-toggle{pointer-events:none}"
+
+          old_mobile = ".language-menu{width:min(200px,calc(100vw - 32px))}"
+          new_mobile = ".language-menu{width:100%;height:42px}"
+
+          old_html = '<div id="languageMenu" class="language-menu" hidden>'
+          new_html = '<div id="languageMenu" class="language-menu">'
+
+          old_js = "function setLanguageMenu(open){el.languageMenu.hidden=!open;el.languageToggle.setAttribute('aria-expanded',String(open))}\nel.languageToggle.addEventListener('click',event=>{event.stopPropagation();setLanguageMenu(el.languageMenu.hidden)});el.languageMenu.addEventListener('click',event=>event.stopPropagation());document.addEventListener('click',()=>setLanguageMenu(false));document.addEventListener('keydown',event=>{if(event.key==='Escape')setLanguageMenu(false)});el.languageSelect.addEventListener('change',()=>{applyLanguage(el.languageSelect.value);setLanguageMenu(false)});"
+          new_js = "el.languageSelect.addEventListener('change',()=>applyLanguage(el.languageSelect.value));"
+
+          replacements = [
+              (old_css, new_css),
+              (old_mobile, new_mobile),
+              (old_html, new_html),
+              (old_js, new_js),
+          ]
+
+          for old, new in replacements:
+              if old not in text:
+                  raise SystemExit(f'Expected text not found: {old[:80]}')
+              text = text.replace(old, new, 1)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit change and remove temporary workflow
+        run: |
+          rm .github/workflows/direct-language-selector.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/direct-language-selector.yml
+          git commit -m "Open language selector directly from header button"
+          git push
