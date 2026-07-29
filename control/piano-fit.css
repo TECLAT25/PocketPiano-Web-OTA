@@ -1,0 +1,6 @@
+.piano-scroll{overflow-x:hidden;padding-bottom:0;width:100%}
+.piano-modules{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:clamp(2px,.7vw,8px);min-width:0;width:100%}
+.piano-module{min-width:0;padding:clamp(2px,.6vw,8px);border-radius:clamp(4px,.8vw,12px)}
+.piano-module figcaption{margin-bottom:clamp(2px,.5vw,6px);font-size:clamp(.45rem,1.15vw,.85rem);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.piano-module img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:contain}
+@media(max-width:700px){.piano-modules{grid-template-columns:repeat(8,minmax(0,1fr));gap:2px;min-width:0}.piano-module{padding:2px;border-radius:5px}.piano-module figcaption{font-size:.48rem;margin-bottom:2px}}
